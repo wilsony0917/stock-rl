@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Stock RL</title>
+</head>
+<body>
+
+<h2>Wilson 股票訊號</h2>
+
+<pre id="txt">Loading...</pre>
+
+<script>
+fetch("RL.txt")
+.then(r => r.text())
+.then(t => {
+    document.getElementById("txt").textContent = t;
+});
+</script>
+
+</body>
+</html>
