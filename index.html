@@ -3,7 +3,7 @@
     <html>
     <head>
     <meta charset="utf-8">
-    <title>Wilson 股票訊號查詢</title>
+    <title>Wilson 猜股票</title>
 
     <style>
     body {
@@ -50,12 +50,12 @@
         <button onclick="searchStock()">🔍 查詢</button>
         <input id="stockInput"
                type="text"
-               placeholder="輸入股號或名稱">
+               placeholder="輸入字串">
     </div>
 
     <div id="content">
         <h2>Wilson 股票訊號查詢</h2>
-        <p>更新時間：2026-06-05 22:40:57</p>
+        <p>更新時間：2026-06-05 22:44:08</p>
         <div id="result">請輸入股號或名稱後查詢</div>
     </div>
 
@@ -72,7 +72,7 @@
     const result = document.getElementById("result");
 
     if (!keyword) {
-        result.innerHTML = "請輸入股號或名稱";
+        result.innerHTML = "請輸入字串";
         return;
     }
 
