@@ -55,7 +55,7 @@
 
     <div id="content">
         <h2>Wilson 猜股票</h2>
-        <p>更新時間：2026-06-06 13:37:50</p>
+        <p>更新時間：2026-06-06 13:56:25</p>
         <div id="result">請輸入字串後查詢</div>
     </div>
 
@@ -101,21 +101,23 @@
             "<div class='result'>" + output + "</div>";
     }
 
-    fetch(LOG_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: JSON.stringify({
-        keyword: keyword,
-        resultCount:
+    const logUrl =
+        LOG_URL
+        + "?keyword=" + encodeURIComponent(keyword)
+        + "&resultCount=" + encodeURIComponent(
             output === ""
             ? 0
-            : output.trim().split("\n").length,
-        userAgent: navigator.userAgent
-        })
-    });
+            : output.trim().split("\n").length
+        )
+        + "&userAgent=" + encodeURIComponent(
+            navigator.userAgent
+        );
+
+    new Image().src = logUrl;
+
+
     }
     </script>
-
     </body>
     </html>
     
