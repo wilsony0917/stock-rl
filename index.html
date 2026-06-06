@@ -55,7 +55,7 @@
 
     <div id="content">
         <h2>Wilson 猜股票</h2>
-        <p>更新時間：2026-06-06 15:44:18</p>
+        <p>更新時間：2026-06-06 15:52:36</p>
         <div id="result">請輸入字串後查詢</div>
     </div>
 
@@ -102,18 +102,20 @@
     }
 
     const logUrl =
-    LOG_URL
-    + "?keyword=" + encodeURIComponent(keyword)
-    + "&resultCount=" + encodeURIComponent(
-        output === ""
-        ? 0
-        : output.trim().split("\n").length
-    )
-    + "&userAgent=" + encodeURIComponent(
-        navigator.userAgent
-    )
-    + "&t=" + Date.now();
-    window.open(logUrl, "_blank");
+        LOG_URL
+        + "?keyword=" + encodeURIComponent(keyword)
+        + "&resultCount=" + encodeURIComponent(
+            output === ""
+            ? 0
+            : output.trim().split("\n").length
+        )
+        + "&userAgent=" + encodeURIComponent(
+            navigator.userAgent
+        )
+        + "&t=" + Date.now();
+
+    const img = new Image();
+    img.src = logUrl;
 
     }
     </script>
