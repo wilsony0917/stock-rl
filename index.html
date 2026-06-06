@@ -55,7 +55,7 @@
 
     <div id="content">
         <h2>Wilson 猜股票</h2>
-        <p>更新時間：2026-06-06 15:58:32</p>
+        <p>更新時間：2026-06-06 16:11:38</p>
         <p>範例:uuuuu.uuululuuuuulu.uuu</p>
         <div id="result">請輸入字串後查詢</div>
     </div>
@@ -119,6 +119,8 @@
     img.src = logUrl;
 
     }
+
+    document.getElementById("stockInput").addEventListener("keydown", e => {if (e.key === "Enter") searchStock();});
     </script>
     </body>
     </html>
