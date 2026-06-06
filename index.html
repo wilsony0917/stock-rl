@@ -55,7 +55,7 @@
 
     <div id="content">
         <h2>Wilson 猜股票</h2>
-        <p>更新時間：2026-06-06 14:06:31</p>
+        <p>更新時間：2026-06-06 14:15:12</p>
         <div id="result">請輸入字串後查詢</div>
     </div>
 
@@ -114,10 +114,7 @@
     )
     + "&t=" + Date.now();
 
-    fetch(logUrl, {
-        method: "GET",
-        mode: "no-cors"
-    });
+    window.open(logUrl, "_blank");
 
 
     }
