@@ -1,0 +1,87 @@
+body {
+  font-family: Arial, "Microsoft JhengHei", sans-serif;
+  margin: 20px;
+}
+
+#toolbar {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: white;
+  padding: 10px;
+  z-index: 9999;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+#stockInput {
+  width: 260px;
+  padding: 6px;
+}
+
+button {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+#content {
+  margin-top: 70px;
+  display: flex;
+  gap: 15px;
+}
+
+#leftPanel {
+  width: 35%;
+  min-width: 320px;
+}
+
+#rightPanel {
+  width: 65%;
+  height: 720px;
+  position: sticky;
+  top: 80px;
+}
+
+#tvFrame {
+  width: 100%;
+  height: 720px;
+  border: 1px solid #ccc;
+}
+
+.result {
+  margin-top: 15px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+}
+
+.stock-link {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.stock-link:hover {
+  background: #e8f2ff;
+}
+
+.stock-symbol {
+  color: #555;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  #content {
+    flex-direction: column;
+  }
+
+  #leftPanel,
+  #rightPanel {
+    width: 100%;
+  }
+
+  #rightPanel,
+  #tvFrame {
+    height: 520px;
+  }
+}

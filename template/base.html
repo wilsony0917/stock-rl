@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wilson 猜股票</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="toolbar">
+    <button id="searchBtn">🔍 查詢</button>
+    <input id="stockInput" type="text" placeholder="輸入字串 / Regex">
+  </div>
+
+  <div id="content">
+    <div id="leftPanel">
+      <h2>Wilson 猜股票</h2>
+      <p>更新時間：<span id="updateTime">Loading...</span></p>
+      <div id="result">資料讀取中...</div>
+    </div>
+
+    <div id="rightPanel">
+      <iframe id="tvFrame" src="" frameborder="0"></iframe>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
