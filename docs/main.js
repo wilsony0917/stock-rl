@@ -56,9 +56,7 @@ function makeStockLink(row) {
 
   const symbol = row.tv || row.symbol || extractSymbolFromKey(row.key || "");
 
-  const tvUrl =
-    "https://tw.tradingview.com/chart/?symbol="
-    + encodeURIComponent(symbol);
+  const tvUrl = "https://tw.tradingview.com/chart/?symbol=" + encodeURIComponent(symbol);
 
   return `
     <div class="stock-link">
