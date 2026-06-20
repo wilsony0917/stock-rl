@@ -1,5 +1,5 @@
 const CONFIG = {
-  DATA_URL: "data/daily.json",
+  DATA_URL: "daily.json",
   LOG_URL: "https://script.google.com/macros/s/AKfycbwuRFFONEWIZ6yptI3H8_rPxMRIz4ysgjTGAjul_aK82HxbcZS4NPte1Gj0Iojv2XhX/exec",
   DEFAULT_SYMBOL: "TWSE:2330",
   TV_CHART_BASE: "https://tw.tradingview.com/chart/?symbol=",
