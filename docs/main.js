@@ -75,46 +75,51 @@ function escapeHtml(value) {
 }
 
 function searchStock() {
-  const keyword = document.getElementById("stockInput").value.trim();
-  const result = document.getElementById("result");
+    const keyword = document
+        .getElementById("stockInput")
+        .value
+        .trim();
 
-  if (!stockDataLoaded) {
-    result.innerHTML = "資料尚未載入完成";
-    return;
+    const result = document.getElementById("result");
+
+    if (!keyword) {
+        result.innerHTML = "請輸入字串";
+        return;
+    }
+
+    let pattern;
+
+    try {
+        pattern = new RegExp(keyword);
+    } catch (e) {
+        result.innerHTML = "Regex 格式錯誤：" + keyword;
+        return;
+    }
+
+    const matched = stockRows.filter(row => {
+        const text = [
+            row.key || "",
+            row.tv || "",
+            row.symbol || "",
+            row.ul || "",
+            row.signal || ""
+        ].join(" ");
+
+        return pattern.test(text);
+    });
+
+    if (matched.length === 0) {
+        result.innerHTML = "找不到：" + keyword;
+        logSearch(keyword, 0);
+        return;
+    }
+
+    result.innerHTML = matched
+        .map(row => makeStockLink(row))
+        .join("");
+
+    logSearch(keyword, matched.length);
   }
-
-  if (!keyword) {
-    result.innerHTML = "請輸入字串";
-    return;
-  }
-
-  let pattern;
-  try {
-    pattern = new RegExp(keyword);
-  } catch (e) {
-    result.innerHTML = "Regex 格式錯誤";
-    return;
-  }
-
-  const matched = stockRows.filter(row => {
-    const text = [
-        row.key || "",
-        row.symbol || "",
-        row.signal || ""
-    ].join(" ");
-
-    return pattern.test(text);
-  });
-
-  if (matched.length === 0) {
-    result.innerHTML = "找不到：" + escapeHtml(keyword);
-  } else {
-    result.innerHTML = "<div class='result'>" + matched.map(makeStockLink).join("") + "</div>";
-    if (matched[0].symbol) openTV(matched[0].symbol);
-  }
-
-  logSearch(keyword, matched.length);
-}
 
 function logSearch(keyword, resultCount) {
   if (!CONFIG.LOG_URL) return;
