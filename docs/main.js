@@ -45,24 +45,32 @@ async function loadDailyData() {
   }
 }
 
-function openTV(symbol) {
-  if (!symbol) return;
-
-  const url = CONFIG.TV_CHART_BASE + encodeURIComponent(symbol);
-  document.getElementById("tvFrame").src = url;
-}
-
 function makeStockLink(row) {
-  const safeKey = escapeHtml(row.key);
-  const safeSymbol = escapeHtml(row.symbol || "");
-  const preview = escapeHtml(String(row.signal || "").slice(-CONFIG.SIGNAL_PREVIEW_LEN));
 
-  return `
-    <div class="stock-link" onclick="openTV('${safeSymbol}')">
-      <div><span class="stock-symbol">${safeKey}</span></div>
-      <div class="stock-signal">${preview}</div>
-    </div>
-  `;
+    const safeKey = escapeHtml(row.key);
+    const preview = escapeHtml(row.ul || "");
+
+    const tvUrl =
+        "https://tw.tradingview.com/chart/FKVV6Ftr/?symbol="
+        + encodeURIComponent(row.tv);
+
+    return `
+        <div class="stock-link">
+
+            <a class="stock-title"
+               href="${tvUrl}"
+               target="_blank">
+
+                📈 ${safeKey}
+
+            </a>
+
+            <div class="preview">
+                ${preview}
+            </div>
+
+        </div>
+    `;
 }
 
 function escapeHtml(value) {
