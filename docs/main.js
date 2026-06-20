@@ -55,13 +55,13 @@ function makeStockLink(row) {
   const preview = escapeHtml(row.ul || row.signal || "");
 
   const symbol = row.tv;
-
+  const num = row.num;
   const tvUrl = "https://tw.tradingview.com/chart/?symbol=" + encodeURIComponent(symbol);
-
+  const wgUrl = "https://www.wantgoo.com/stock/" + num + "/technical-chart"
   return `
     <div class="stock-link">
       <a class="stock-title"
-         href="${tvUrl}"
+         href="${wgUrl}"
          target="_blank">
         📈 ${safeKey}
       </a>
