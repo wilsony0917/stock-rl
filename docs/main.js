@@ -30,9 +30,9 @@ async function loadDailyData() {
 
     const payload = await response.json();
     stockRows = normalizeRows(payload).map(row => ({
-      key: row.key || "",
-      symbol: row.symbol || extractSymbolFromKey(row.key || ""),
-      signal: row.signal || row.value || ""
+    key: row.key || "",
+    symbol: row.symbol || row.tv || extractSymbolFromKey(row.key || ""),
+    signal: row.signal || row.ul || row.value || ""
     }));
 
     document.getElementById("updateTime").textContent = payload.updateTime || "未知";
