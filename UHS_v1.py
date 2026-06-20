@@ -17,6 +17,11 @@ import datetime as dd
 import json
 import re,time,shutil
 
+print("="*60)
+print("Running :", __file__)
+print("PWD     :", os.getcwd())
+print("="*60)
+
 logging.getLogger('yfinance').disabled = True
 logging.getLogger('yfinance').propagate = False
 logging.getLogger("yfinance").setLevel(0)
@@ -156,71 +161,11 @@ def deploy_static_files():
         else:
             print("Missing template file:", src)
 
+def update_json(dwm, update_time, Json_Name):
 
-def normalize_json_records(json_data):
-    """
-    將 DataFrame / dict 轉成 daily.json 裡的 data list。
+    payload = {"updateTime": update_time,
+               "data": dwm.reset_index().rename(columns={"index": "key"}).to_dict(orient="records")}
 
-    支援格式：
-    1. DataFrame 有 key/symbol/signal 欄位
-    2. DataFrame 有 tv/signal 欄位
-    3. DataFrame index 是 key，第一欄是 signal
-    4. dict: {key: signal}
-    """
-    records = []
-
-    if isinstance(json_data, pd.DataFrame):
-        df = json_data.copy()
-
-        # 欄名統一小寫方便判斷
-        colmap = {str(c).lower(): c for c in df.columns}
-
-        key_col = colmap.get("key") or colmap.get("name") or colmap.get("stock")
-        symbol_col = colmap.get("symbol") or colmap.get("tv")
-        signal_col = (colmap.get("signal") or colmap.get("ul") or colmap.get("rb") or colmap.get("value"))
-
-        if signal_col is None and len(df.columns) > 0:signal_col = df.columns[0]
-
-        for idx, row in df.iterrows():
-            signal = "" if signal_col is None else str(row.get(signal_col, ""))
-            symbol = "" if symbol_col is None else str(row.get(symbol_col, ""))
-
-            if key_col is not None:key = str(row.get(key_col, idx))
-            else:key = str(idx)
-
-            # 若 key 裡沒有 TWSE/TPEX，但 symbol 有，就補進 key 前面，方便前端抓股號
-            if symbol and symbol not in key:key = f"{key} {symbol}"
-
-            records.append({"key": key,"symbol": symbol,"signal": signal,})
-
-    elif isinstance(json_data, dict):
-        for key, signal in json_data.items():
-            key = str(key)
-            symbol = ""
-            # 從 key 裡抓 TWSE:2330 / TPEX:6125
-            for part in key.split():
-                if part.startswith("TWSE:") or part.startswith("TPEX:"):
-                    symbol = part
-                    break
-
-            records.append({"key": key,"symbol": symbol,"signal": str(signal),})
-
-    else:raise TypeError("json_data 必須是 pandas DataFrame 或 dict")
-
-    return records
-
-
-def update_json(json_data, update_time, Json_Name):
-    """
-    產生 daily.json。
-
-    json_data: DataFrame 或 dict
-    update_time: 每日更新時間字串，例如 Now()
-    Json_Name: daily.json 完整路徑，例如 ~/stock-rl/docs/data/daily.json
-    """
-    records = normalize_json_records(json_data)
-    payload = {"updateTime": update_time,"data": records,}
-    
     Json_Name = os.path.expanduser(Json_Name)
     os.makedirs(os.path.dirname(Json_Name), exist_ok=True)
 
@@ -228,16 +173,12 @@ def update_json(json_data, update_time, Json_Name):
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     print("JSON saved:", Json_Name)
-    print("Records:", len(records))
-
-    return Json_Name
-
+    print("Records:", len(payload["data"]))
+    return
 
 def push_to_github(repo_path):
     """提交並推送 GitHub。沒有變更時不 commit。"""
     repo_path = os.path.expanduser(repo_path)
-
-    # 先同步遠端，降低兩台電腦衝突機率
     pull = subprocess.run(["git", "pull"],cwd=repo_path,capture_output=True,text=True)
     if pull.stdout:print(pull.stdout)
     if pull.stderr:print(pull.stderr)
@@ -257,27 +198,18 @@ def push_to_github(repo_path):
         if result.stderr:print(result.stderr)
 
 def upload_github(json_data, update_time=None):
-    """
-    上傳每日資料。
-    現在不再產生 index.html，只更新 docs/data/daily.json。
-    """
     if update_time is None:update_time = Now()
+    Name = os.environ["USER"]
+    if Name == "wilsonliu":repo_path = os.path.expanduser("~/stock-rl")
+    else:repo_path = os.path.expanduser("~/Desktop/stock-rl")
+    Json_Name = os.path.join(repo_path,"docs","data","daily.json")
+    
+    update_json(dwm=json_data,update_time=update_time,Json_Name=Json_Name)
 
-    Location_Dir = get_repo_path()
-    Json_Name = os.path.join(Location_Dir, "docs", "data", "daily.json")
-
-    # 第一次升級 v2 時需要；之後留著也沒壞處
-    deploy_static_files()
-
-    update_json(json_data=json_data,update_time=update_time,Json_Name=Json_Name)
-
-    push_to_github(Location_Dir)
-
-    return Json_Name
-
-
+    push_to_github(repo_path)
+    return 
 
 dfs,lc,df_stock,dwm=start_download()
-upload_github(dwm['txt'])
+upload_github(dwm)
 
 
