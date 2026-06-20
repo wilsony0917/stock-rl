@@ -5,10 +5,10 @@ function normalizeRows(payload) {
   if (Array.isArray(payload.data)) return payload.data;
 
   if (payload.stocks && typeof payload.stocks === "object") {
-    return Object.entries(payload.stocks).map(([key, signal]) => ({
+    return Object.entries(payload.stocks).map(([key, ul]) => ({
       key,
-      signal,
-      symbol: extractSymbolFromKey(key)
+      ul,
+      tv: extractSymbolFromKey(key)
     }));
   }
 
@@ -29,15 +29,21 @@ async function loadDailyData() {
     if (!response.ok) throw new Error("HTTP " + response.status);
 
     const payload = await response.json();
+
     stockRows = normalizeRows(payload).map(row => ({
-    key: row.key || "",
-    symbol: row.symbol || row.tv || extractSymbolFromKey(row.key || ""),
-    signal: row.signal || row.ul || row.value || ""
+      key: row.key || "",
+      ul: row.ul || row.signal || row.value || "",
+      tv: row.tv || row.symbol || extractSymbolFromKey(row.key || "")
     }));
 
-    document.getElementById("updateTime").textContent = payload.updateTime || "未知";
-    status.textContent = "已載入 " + stockRows.length + " 筆資料";
+    document.getElementById("updateTime").textContent =
+      payload.updateTime || "未知";
+
+    status.textContent =
+      "已載入 " + stockRows.length + " 筆資料";
+
     stockDataLoaded = true;
+
   } catch (err) {
     status.textContent = "daily.json 讀取失敗：" + err.message;
     stockDataLoaded = false;
@@ -45,31 +51,28 @@ async function loadDailyData() {
 }
 
 function makeStockLink(row) {
+  const safeKey = escapeHtml(row.key);
+  const preview = escapeHtml(row.ul || "");
 
-    const safeKey = escapeHtml(row.key);
-    const preview = escapeHtml(row.ul || "");
+  const tvUrl =
+    "https://tw.tradingview.com/chart/FKVV6Ftr/?symbol="
+    + encodeURIComponent(row.tv || "");
 
-    const tvUrl =
-        "https://tw.tradingview.com/chart/FKVV6Ftr/?symbol="
-        + encodeURIComponent(row.tv);
+  return `
+    <div class="stock-link">
 
-    return `
-        <div class="stock-link">
+      <a class="stock-title"
+         href="${tvUrl}"
+         target="_blank">
+        📈 ${safeKey}
+      </a>
 
-            <a class="stock-title"
-               href="${tvUrl}"
-               target="_blank">
+      <div class="preview">
+        ${preview}
+      </div>
 
-                📈 ${safeKey}
-
-            </a>
-
-            <div class="preview">
-                ${preview}
-            </div>
-
-        </div>
-    `;
+    </div>
+  `;
 }
 
 function escapeHtml(value) {
@@ -82,51 +85,49 @@ function escapeHtml(value) {
 }
 
 function searchStock() {
-    const keyword = document
-        .getElementById("stockInput")
-        .value
-        .trim();
+  const keyword = document
+    .getElementById("stockInput")
+    .value
+    .trim();
 
-    const result = document.getElementById("result");
+  const result = document.getElementById("result");
 
-    if (!keyword) {
-        result.innerHTML = "請輸入字串";
-        return;
-    }
-
-    let pattern;
-
-    try {
-        pattern = new RegExp(keyword);
-    } catch (e) {
-        result.innerHTML = "Regex 格式錯誤：" + keyword;
-        return;
-    }
-
-    const matched = stockRows.filter(row => {
-        const text = [
-            row.key || "",
-            row.tv || "",
-            row.symbol || "",
-            row.ul || "",
-            row.signal || ""
-        ].join(" ");
-
-        return pattern.test(text);
-    });
-
-    if (matched.length === 0) {
-        result.innerHTML = "找不到：" + keyword;
-        logSearch(keyword, 0);
-        return;
-    }
-
-    result.innerHTML = matched
-        .map(row => makeStockLink(row))
-        .join("");
-
-    logSearch(keyword, matched.length);
+  if (!keyword) {
+    result.innerHTML = "請輸入字串";
+    return;
   }
+
+  let pattern;
+
+  try {
+    pattern = new RegExp(keyword);
+  } catch (e) {
+    result.innerHTML = "Regex 格式錯誤：" + escapeHtml(keyword);
+    return;
+  }
+
+  const matched = stockRows.filter(row => {
+    const text = [
+      row.key || "",
+      row.tv || "",
+      row.ul || ""
+    ].join(" ");
+
+    return pattern.test(text);
+  });
+
+  if (matched.length === 0) {
+    result.innerHTML = "找不到：" + escapeHtml(keyword);
+    logSearch(keyword, 0);
+    return;
+  }
+
+  result.innerHTML = matched
+    .map(row => makeStockLink(row))
+    .join("");
+
+  logSearch(keyword, matched.length);
+}
 
 function logSearch(keyword, resultCount) {
   if (!CONFIG.LOG_URL) return;
@@ -147,10 +148,18 @@ function clearSearch() {
   document.getElementById("result").innerHTML = "請輸入字串後查詢";
 }
 
-document.getElementById("searchBtn").addEventListener("click", searchStock);
-document.getElementById("clearBtn").addEventListener("click", clearSearch);
-document.getElementById("stockInput").addEventListener("keydown", e => {
-  if (e.key === "Enter") searchStock();
-});
+document
+  .getElementById("searchBtn")
+  .addEventListener("click", searchStock);
+
+document
+  .getElementById("clearBtn")
+  .addEventListener("click", clearSearch);
+
+document
+  .getElementById("stockInput")
+  .addEventListener("keydown", e => {
+    if (e.key === "Enter") searchStock();
+  });
 
 loadDailyData();
