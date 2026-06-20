@@ -38,7 +38,6 @@ async function loadDailyData() {
     document.getElementById("updateTime").textContent = payload.updateTime || "未知";
     status.textContent = "已載入 " + stockRows.length + " 筆資料";
     stockDataLoaded = true;
-    openTV(CONFIG.DEFAULT_SYMBOL);
   } catch (err) {
     status.textContent = "daily.json 讀取失敗：" + err.message;
     stockDataLoaded = false;
