@@ -52,19 +52,25 @@ async function loadDailyData() {
 
 function makeStockLink(row) {
   const safeKey = escapeHtml(row.key);
-  const preview = escapeHtml(row.ul || "");
+  const preview = escapeHtml(row.ul || row.signal || "");
 
-  const symbol = row.tv || row.symbol || "";
+  const symbol = row.tv || row.symbol || extractSymbolFromKey(row.key || "");
+
   const tvUrl =
     "https://tw.tradingview.com/chart/FKVV6Ftr/?symbol="
     + encodeURIComponent(symbol);
 
   return `
     <div class="stock-link">
-      <a class="stock-title" href="${tvUrl}" target="_blank">
+      <a class="stock-title"
+         href="${tvUrl}"
+         target="_blank">
         📈 ${safeKey}
       </a>
-      <div class="preview">${preview}</div>
+
+      <div class="preview">
+        ${preview}
+      </div>
     </div>
   `;
 }
