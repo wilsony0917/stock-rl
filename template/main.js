@@ -54,23 +54,17 @@ function makeStockLink(row) {
   const safeKey = escapeHtml(row.key);
   const preview = escapeHtml(row.ul || "");
 
+  const symbol = row.tv || row.symbol || "";
   const tvUrl =
     "https://tw.tradingview.com/chart/FKVV6Ftr/?symbol="
-    + encodeURIComponent(row.tv || "");
+    + encodeURIComponent(symbol);
 
   return `
     <div class="stock-link">
-
-      <a class="stock-title"
-         href="${tvUrl}"
-         target="_blank">
+      <a class="stock-title" href="${tvUrl}" target="_blank">
         📈 ${safeKey}
       </a>
-
-      <div class="preview">
-        ${preview}
-      </div>
-
+      <div class="preview">${preview}</div>
     </div>
   `;
 }
