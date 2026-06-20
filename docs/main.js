@@ -60,7 +60,7 @@ function makeStockLink(row) {
     "https://tw.tradingview.com/chart/?symbol="
     + encodeURIComponent(symbol);
 
-  return
+  return '
     <div class="stock-link">
       <a class="stock-title"
          href="${tvUrl}"
@@ -72,7 +72,7 @@ function makeStockLink(row) {
         ${preview}
       </div>
     </div>
-  ;
+  ';
 }
 
 function escapeHtml(value) {
