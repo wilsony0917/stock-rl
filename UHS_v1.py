@@ -209,7 +209,8 @@ def upload_github(json_data, update_time=None):
     push_to_github(repo_path)
     return 
 
-dfs,lc,df_stock,dwm=start_download()
+lc,df_stock,dwm=start_download()
+print("START upload_github")
 upload_github(dwm)
-
+print("END upload_github")
 
