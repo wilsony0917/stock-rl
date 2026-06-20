@@ -96,7 +96,15 @@ function searchStock() {
     return;
   }
 
-  const matched = stockRows.filter(row => pattern.test(row.signal));
+  const matched = stockRows.filter(row => {
+    const text = [
+        row.key || "",
+        row.symbol || "",
+        row.signal || ""
+    ].join(" ");
+
+    return pattern.test(text);
+  });
 
   if (matched.length === 0) {
     result.innerHTML = "找不到：" + escapeHtml(keyword);
