@@ -80,7 +80,7 @@ def download_by_stock(lc,interval='1d',period='3y',List=[],D={}):
     print('\n',Now(),'Stop download')
     return D
 
-def D2WM(Dict0,lc,dwm={},df_txt={},df_tv={},df_no={}):
+def D2WM(Dict0,lc,df_txt={},df_tv={}):
     keys={k:lc.loc[k].to_dict() for k in lc.index}
     Times=['D','W','ME']
     zh_time={'D':'日','W':'週','ME':'月'}
@@ -114,8 +114,11 @@ def D2WM(Dict0,lc,dwm={},df_txt={},df_tv={},df_no={}):
             sub_name = zh_time[Time] + ' ' + str(k) + ' ' + df.index.name
             df_txt[sub_name]=txt[-60:]
             df_tv[sub_name]=keys[k]['tv']
-            df_no[sub_name]=str(k)
-    df=pd.DataFrame([df_txt,df_tv,df_no],index=['ul','tv','num']).T
+    
+    df_no={k:v.split(':')[1] for k,v in df_tv.items()}
+    df_yf={k:v.replace('TWSE:','TW.')for k,v in df_tv.items()}
+    df_yf={k:v.replace('TPEX:','TWO.')for k,v in df_yf.items()}
+    df=pd.DataFrame([df_txt,df_tv,df_no,df_yf],index=['ul','tv','num','yahoo']).T
     return df
 
 def start_download():
