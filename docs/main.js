@@ -61,7 +61,7 @@ function makeStockLink(row) {
   return `
     <div class="stock-link">
       <a class="stock-title"
-         href="${wgUrl}"
+         href="${tvUrl}"
          target="_blank">
         📈 ${safeKey}
       </a>
