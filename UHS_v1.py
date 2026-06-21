@@ -71,15 +71,15 @@ def fast_download_stocks():
     print('stocks list OK')
     return df
 
-def download_by_stock(lc,interval='1d',period='',List=[],D={}):
+def download_by_stock(lc,interval='1d',start='',end='',List=[],D={}):
     if type(lc)!=pd.DataFrame:return print('lcc not dataframe')
     if List!=[]:lc=lc.loc[List]
     print(Now(),'Start download')
-    index={'interval':interval,'ignore_tz':True}
+    index={'interval':interval,'ignore_tz':True,'progress':False,'start':start,'end':end}
     C=lambda l,x:l.loc[x,'Code']
     L=len(lc.index)
     for x,i in enumerate(lc.index):
-        D[C(lc,i)]=yf.download(lc.loc[i,'yahoo'],**index,progress=False,period=period).droplevel(level=1,axis=1)
+        D[C(lc,i)]=yf.download(lc.loc[i,'yahoo'],**index).droplevel(level=1,axis=1)
         print('\r','[',x+1,'/',L,']',i,f"{lc.loc[i,'name']: <10}",end="", flush=True)
     print('\n',Now(),'finish download')
     return D
@@ -131,15 +131,16 @@ def find_stock(df,S=''):
     [print(a) for a in i]
     return i
 
-def save_to_parquet(new_Dict):
+def save_to_parquet(today_Dict,new_dict={}):
     old_files = [os.path.join(stocks_save,b) for a in os.walk(stocks_save) for b in a[2]]
     old_dict={os.path.basename(f).split('.')[0]:pd.read_parquet(f) for f in old_files if f.endswith('parquet')}
-    for k,df in new_Dict.items():
+    for k,df in today_Dict.items():
         new_file = os.path.join(stocks_save, k + '.parquet')
-        if os.path.isfile(new_file)==True:old_dict[k]=pd.concat([old_dict[k],df],join='inner')
-        else:old_dict[k]=df.copy()
-        old_dict[k].to_parquet(new_file)
-    return old_dict
+        if os.path.isfile(new_file)==True:new_dict[k]=pd.concat([old_dict[k],df],join='inner')
+        else:new_dict[k]=df.copy()
+        new_dict[k].sort_index(inplace=True,ascending=True)
+        new_dict[k].to_parquet(new_file)
+    return new_dict
 
 def get_repo_path():
     """依使用者帳號判斷 stock-rl repo 位置。"""
@@ -222,8 +223,9 @@ def upload_github(json_data, update_time=None):
     return 
 
 lc=fast_download_stocks()
-df_stock=download_by_stock(lc,interval='1d')
+df_stock=download_by_stock(lc)
 new_dict=save_to_parquet(df_stock)
+
 dwm=D2WM(new_dict,lc)
 
 print("START upload_github")
