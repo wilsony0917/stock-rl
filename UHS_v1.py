@@ -125,13 +125,6 @@ def D2WM(Dict0,lc,df_txt={},df_tv={}):
     df=pd.DataFrame([df_txt,df_tv,df_no,df_yf],index=['ul','tv','num','yahoo']).T
     return df
 
-def start_download():
-    lc=fast_download_stocks()
-    df_stock=download_by_stock(lc,interval='1d')
-    new_dict=save_to_parquet(df_stock)
-    dwm=D2WM(new_dict,lc)
-    return lc,df_stock,dwm
-
 def find_stock(df,S=''):
     if S=='':return
     i=df[df['ul'].str.contains(S)].index
@@ -237,3 +230,4 @@ print("START upload_github")
 upload_github(dwm)
 print("END upload_github")
 
+# /Users/wilsonliu/Library/spyder-6/envs/spyder-runtime/bin/python /Users/wilsonliu/stock-rl/UHS_v1.py
