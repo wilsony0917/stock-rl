@@ -15,7 +15,7 @@ from io import StringIO
 import subprocess
 import datetime as dd
 import json
-import re,time,shutil
+import re,time,shutil,sys
 
 print("="*60)
 print("Running :", __file__)
@@ -173,6 +173,81 @@ def deploy_static_files():
             shutil.copy(src, dst)
         else:
             print("Missing template file:", src)
+            
+def download_tpex_trade(Day=None):
+    if Day is None:Day = dd.date.today().strftime('%Y/%m/%d')
+    else:Day= f"{Day[:4]}/{Day[4:6]}/{Day[6:]}"
+    url = "https://www.tpex.org.tw/www/zh-tw/insti/dailyTrade"
+    params = {"type": "Daily","sect": "EW","date": Day,"id": "","response": "json"}
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(url, params=params, headers=headers, timeout=20)
+    r.raise_for_status()
+    data = r.json()
+    if len(data["tables"][0]["data"])==0:return pd.DataFrame()
+    df = pd.DataFrame(data["tables"][0]["data"], columns=data["tables"][0]["fields"])
+    new2 = ["證券代號", "證券名稱"]
+    groups = ['外陸資$(不含外資自營商)', '外資自營商$', '外資及陸資$', '投信$', '自營商$(自行買賣)', '自營商$(避險)', '自營商$']
+    in_out = ['買進股數','賣出股數','買賣超股數']
+    Total = ['三大法人買賣超股數']
+    new_cols = new2 + [a.replace('$',b) for a in groups for b in in_out] + Total
+    df.columns=new_cols
+    df=df.drop(columns=df.columns[df.columns.str.contains('[進出]')])
+    df.index.name=Day.replace('/','')
+    return df
+
+def download_twse_trade(Day=None):
+    if Day is None:Day = dd.date.today().strftime('%Y%m%d')
+    url = 'https://www.twse.com.tw/rwd/zh/fund/T86'
+    params = {"selectType": "ALLBUT0999","date": Day,"response": "json"}
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(url, params=params, headers=headers, timeout=20)
+    r.raise_for_status()
+    data = r.json()
+    if data['stat']!='OK':return pd.DataFrame()
+    try:
+        df = pd.DataFrame(data["data"], columns=data["fields"])
+        df=df.drop(columns=df.columns[df.columns.str.contains('[進出]')])
+        df.index.name=Day
+        return df
+    except:
+        time.sleep(0.3)
+        return download_twse_trade(Day)
+            
+def download_volume(Day=None):
+    time.sleep(0.3)
+    Week={0:'一',1:'二',2:'三',3:'四',4:'五',5:'六',6:'日'}
+    if Day is None:Day = dd.date.today().strftime('%Y%m%d')
+    df_tp = download_tpex_trade(Day)
+    df_tw = download_twse_trade(Day)
+    if (isinstance(df_tp, pd.DataFrame) and isinstance(df_tw, pd.DataFrame)) == False:return download_volume(Day)
+    if len(df_tp)*len(df_tw)==0:return pd.DataFrame()
+    df=pd.concat([df_tp,df_tw],axis=0,join='inner')
+    df.set_index(df.columns[:2].tolist(),inplace=True)
+    df=df.replace(',', '', regex=True).apply(pd.to_numeric)
+    df = df.loc[:, (df != 0).any(axis=0)]
+    col={'外陸資買賣超股數(不含外資自營商)':'foregin', '投信買賣超股數':'trusts',
+         '自營商買賣超股數(自行買賣)':'dealers(selfbuy)', '自營商買賣超股數(避險)':'dealers(hedge)',
+         '自營商買賣超股數':'dealers', '三大法人買賣超股數':'total'}
+    df.rename(columns=col,inplace=True)
+    df=df/1000
+    if len(df)==0:return
+    if sum(df.isna().sum())>0:
+        print('\n','na in',Day)
+        return download_volume(Day)
+    w=dd.datetime.strptime(Day, '%Y%m%d')
+    path = trade_data + '/' + Day + ".parquet"
+    df=df.rename(columns=col)
+    df.to_parquet(path)
+    print('\r',Week[dd.date.weekday(w)],os.path.basename(path).split('.')[0],int(os.path.getsize(path)/1000),'KB',end='',flush=True)
+    return
+
+def load_parquet():
+    col={'外陸資買賣超股數(不含外資自營商)':'foregin', '投信買賣超股數':'trusts',
+         '自營商買賣超股數(自行買賣)':'dealers(selfbuy)', '自營商買賣超股數(避險)':'dealers(hedge)',
+         '自營商買賣超股數':'dealers', '三大法人買賣超股數':'total'}
+    td = [os.path.join(trade_data,b) for a in os.walk(trade_data) for b in a[2]]
+    vol_dict={os.path.basename(f).split('.')[0]:pd.read_parquet(f).rename(columns=col) for f in td if f.endswith('parquet')}
+    return vol_dict
 
 def update_json(dwm, update_time, Json_Name):
 
@@ -216,15 +291,25 @@ def upload_github(json_data, update_time=None):
     if Name == "wilsonliu":repo_path = os.path.expanduser("~/stock-rl")
     else:repo_path = os.path.expanduser("~/Desktop/stock-rl")
     Json_Name = os.path.join(repo_path,"docs","data","daily.json")
-    
     update_json(dwm=json_data,update_time=update_time,Json_Name=Json_Name)
-
     push_to_github(repo_path)
     return 
+
+def argv_action():
+    lc=fast_download_stocks()
+    df_stock=download_by_stock(lc)
+    new_dict=save_to_parquet(df_stock)
+    download_volume()
+    dwm=D2WM(new_dict,lc)
+    print("START upload_github")
+    upload_github(dwm)
+    print("END upload_github")
+    return
 
 lc=fast_download_stocks()
 df_stock=download_by_stock(lc)
 new_dict=save_to_parquet(df_stock)
+download_volume()
 
 dwm=D2WM(new_dict,lc)
 
